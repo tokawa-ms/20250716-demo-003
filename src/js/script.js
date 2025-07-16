@@ -17,6 +17,7 @@ class RetroTetris {
         this.score = 0;
         this.level = 1;
         this.lines = 0;
+        this.gameStarted = false;
         this.gameRunning = false;
         this.gamePaused = false;
         this.dropTime = 0;
@@ -33,6 +34,7 @@ class RetroTetris {
         this.nextPieceElement = document.getElementById('next-piece');
         this.gameOverModal = document.getElementById('game-over-modal');
         this.pauseModal = document.getElementById('pause-modal');
+        this.startModal = document.getElementById('start-modal');
         this.finalScoreElement = document.getElementById('final-score');
         
         // 音楽管理
@@ -115,12 +117,58 @@ class RetroTetris {
         this.initBoard();
         this.setupEventListeners();
         this.initAudio();
+        this.showStartScreen();
+        this.gameLoop(); // ゲームループを開始（スタート画面状態で）
+    }
+    
+    /**
+     * スタート画面を表示
+     */
+    showStartScreen() {
+        this.gameStarted = false;
+        this.gameRunning = false;
+        this.gamePaused = false;
+        
+        // すべてのモーダルを隠す
+        this.gameOverModal.classList.add('hidden');
+        this.pauseModal.classList.add('hidden');
+        
+        // スタートモーダルを表示
+        this.startModal.classList.remove('hidden');
+        this.startModal.classList.add('modal-enter');
+        
+        // 空のボードを描画
+        this.render();
+    }
+
+    /**
+     * ゲーム開始
+     */
+    startGame() {
+        console.log('startGame() called!');
+        this.gameStarted = true;
+        this.gameRunning = true;
+        this.gamePaused = false;
+        
+        // スタートモーダルを隠す
+        this.startModal.classList.add('hidden');
+        this.startModal.classList.remove('modal-enter');
+        
+        // ゲーム状態をリセット
+        this.score = 0;
+        this.level = 1;
+        this.lines = 0;
+        this.dropInterval = 1000;
+        this.currentNote = 0;
+        this.dropTime = Date.now();
+        
+        // ボードとピースを初期化
+        this.initBoard();
         this.generateNextPiece();
         this.spawnPiece();
         this.updateDisplay();
-        this.gameLoop();
     }
-    
+
     /**
      * ゲームボードの初期化
      */
@@ -136,6 +184,15 @@ class RetroTetris {
     setupEventListeners() {
         // キーボード操作
         document.addEventListener('keydown', (e) => {
+            if (!this.gameStarted) {
+                console.log('Key pressed while not started:', e.code);
+                if (e.code === 'Space' || e.code === 'Enter') {
+                    console.log('Starting game with key:', e.code);
+                    this.startGame();
+                }
+                return;
+            }
+            
             if (!this.gameRunning || this.gamePaused) {
                 if (e.code === 'Space') {
                     this.togglePause();
@@ -165,23 +222,29 @@ class RetroTetris {
         
         // モバイル用ボタン
         document.getElementById('btn-left')?.addEventListener('click', () => {
-            if (this.gameRunning && !this.gamePaused) this.movePiece(-1, 0);
+            if (this.gameStarted && this.gameRunning && !this.gamePaused) this.movePiece(-1, 0);
         });
         
         document.getElementById('btn-right')?.addEventListener('click', () => {
-            if (this.gameRunning && !this.gamePaused) this.movePiece(1, 0);
+            if (this.gameStarted && this.gameRunning && !this.gamePaused) this.movePiece(1, 0);
         });
         
         document.getElementById('btn-down')?.addEventListener('click', () => {
-            if (this.gameRunning && !this.gamePaused) this.movePiece(0, 1);
+            if (this.gameStarted && this.gameRunning && !this.gamePaused) this.movePiece(0, 1);
         });
         
         document.getElementById('btn-rotate')?.addEventListener('click', () => {
-            if (this.gameRunning && !this.gamePaused) this.rotatePiece();
+            if (this.gameStarted && this.gameRunning && !this.gamePaused) this.rotatePiece();
         });
         
         document.getElementById('btn-pause')?.addEventListener('click', () => {
-            this.togglePause();
+            if (this.gameStarted) this.togglePause();
+        });
+        
+        // スタートボタン
+        document.getElementById('start-btn')?.addEventListener('click', () => {
+            console.log('START button clicked!');
+            this.startGame();
         });
         
         // リスタートボタン
@@ -562,7 +625,7 @@ class RetroTetris {
      * 一時停止の切り替え
      */
     togglePause() {
-        if (!this.gameRunning) return;
+        if (!this.gameStarted || !this.gameRunning) return;
         
         this.gamePaused = !this.gamePaused;
         
@@ -580,7 +643,12 @@ class RetroTetris {
      */
     gameOver() {
         this.gameRunning = false;
+        this.gameStarted = false;
         this.finalScoreElement.textContent = this.score;
+        
+        // スタートモーダルを隠してからゲームオーバーモーダルを表示
+        this.startModal.classList.add('hidden');
+        this.pauseModal.classList.add('hidden');
         this.gameOverModal.classList.remove('hidden');
         this.gameOverModal.classList.add('modal-enter');
         
@@ -598,12 +666,14 @@ class RetroTetris {
         this.level = 1;
         this.lines = 0;
         this.dropInterval = 1000;
+        this.gameStarted = true;
         this.gameRunning = true;
         this.gamePaused = false;
         this.currentNote = 0;
         
         this.gameOverModal.classList.add('hidden');
         this.pauseModal.classList.add('hidden');
+        this.startModal.classList.add('hidden');
         
         this.initBoard();
         this.generateNextPiece();
@@ -618,7 +688,7 @@ class RetroTetris {
     gameLoop() {
         const currentTime = Date.now();
         
-        if (this.gameRunning && !this.gamePaused) {
+        if (this.gameStarted && this.gameRunning && !this.gamePaused) {
             // ピースの自動落下
             if (currentTime - this.dropTime > this.dropInterval) {
                 this.movePiece(0, 1);
@@ -642,18 +712,23 @@ class RetroTetris {
     }
 }
 
-// ゲーム開始
+// ゲーム初期化
 document.addEventListener('DOMContentLoaded', () => {
+    let game = null;
+    
     // Web Audio Contextの初期化のためにユーザーインタラクションが必要
-    const startGame = () => {
-        new RetroTetris();
-        document.removeEventListener('click', startGame);
-        document.removeEventListener('keydown', startGame);
+    const initAudioAndStart = () => {
+        if (game) {
+            // すでにゲームが初期化されている場合は音声のみ初期化
+            game.initAudio();
+        }
+        document.removeEventListener('click', initAudioAndStart);
+        document.removeEventListener('keydown', initAudioAndStart);
     };
     
-    document.addEventListener('click', startGame);
-    document.addEventListener('keydown', startGame);
+    document.addEventListener('click', initAudioAndStart);
+    document.addEventListener('keydown', initAudioAndStart);
     
-    // 即座にゲームを開始（音楽なしで）
-    new RetroTetris();
+    // ゲームの初期化（スタート画面表示、ゲームループ開始も含む）
+    game = new RetroTetris();
 });
