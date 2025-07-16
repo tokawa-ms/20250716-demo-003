@@ -1,0 +1,201 @@
+/* レトロテトリス - カスタムスタイル */
+
+/* ドット絵風のピクセル効果 */
+.pixel-art {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* アニメーション定義 */
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 
+            0 0 5px #00ff00,
+            0 0 10px #00ff00,
+            0 0 15px #00ff00;
+    }
+    50% {
+        text-shadow: 
+            0 0 10px #00ff00,
+            0 0 20px #00ff00,
+            0 0 30px #00ff00;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* グロー効果の適用 */
+.retro-text {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* ライン消去エフェクト */
+.line-clear {
+    animation: pulse 0.5s ease-in-out 3;
+    background: #ffff00 !important;
+    box-shadow: 0 0 20px #ffff00 !important;
+}
+
+/* ピース落下エフェクト */
+.falling-piece {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* テトロミノの色定義 */
+.tetromino-I { background: #00ffff; box-shadow: 0 0 5px #00ffff; }
+.tetromino-O { background: #ffff00; box-shadow: 0 0 5px #ffff00; }
+.tetromino-T { background: #ff00ff; box-shadow: 0 0 5px #ff00ff; }
+.tetromino-S { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
+.tetromino-Z { background: #ff0000; box-shadow: 0 0 5px #ff0000; }
+.tetromino-J { background: #0000ff; box-shadow: 0 0 5px #0000ff; }
+.tetromino-L { background: #ffa500; box-shadow: 0 0 5px #ffa500; }
+
+/* ゲームボードのセル */
+.tetris-cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #333;
+    background: transparent;
+}
+
+.tetris-cell.filled {
+    border: 1px solid #fff;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    #game-board {
+        width: 250px !important;
+        height: 500px !important;
+    }
+    
+    .retro-text {
+        font-size: 2rem !important;
+    }
+    
+    .score-panel {
+        padding: 0.75rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #game-board {
+        width: 200px !important;
+        height: 400px !important;
+    }
+    
+    .retro-text {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* 背景のCRTエフェクト */
+.crt-effect {
+    position: relative;
+}
+
+.crt-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 0, 0.05) 2px,
+        rgba(0, 255, 0, 0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ボタンホバーエフェクト */
+.retro-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 10px #00ff00;
+}
+
+/* モーダルアニメーション */
+.modal-enter {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* パーティクルエフェクト用 */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #00ff00;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle-float 2s ease-out forwards;
+}
+
+@keyframes particle-float {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5) translateY(-100px);
+    }
+}
+
+/* スコア増加エフェクト */
+.score-popup {
+    position: absolute;
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 1.2rem;
+    pointer-events: none;
+    animation: score-rise 1s ease-out forwards;
+    text-shadow: 0 0 10px #ffff00;
+}
+
+@keyframes score-rise {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(1.2);
+    }
+}
