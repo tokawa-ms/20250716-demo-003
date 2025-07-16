@@ -145,6 +145,7 @@ class RetroTetris {
      * ゲーム開始
      */
     startGame() {
+        console.log('startGame() called!');
         this.gameStarted = true;
         this.gameRunning = true;
         this.gamePaused = false;
@@ -184,7 +185,9 @@ class RetroTetris {
         // キーボード操作
         document.addEventListener('keydown', (e) => {
             if (!this.gameStarted) {
+                console.log('Key pressed while not started:', e.code);
                 if (e.code === 'Space' || e.code === 'Enter') {
+                    console.log('Starting game with key:', e.code);
                     this.startGame();
                 }
                 return;
@@ -240,6 +243,7 @@ class RetroTetris {
         
         // スタートボタン
         document.getElementById('start-btn')?.addEventListener('click', () => {
+            console.log('START button clicked!');
             this.startGame();
         });
         
