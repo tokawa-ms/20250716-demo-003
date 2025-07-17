@@ -42,6 +42,7 @@ class RetroTetris {
         this.musicPlaying = true;
         this.currentNote = 0;
         this.noteTimer = 0;
+        this.lastNoteDuration = 400; // 最初の音符の長さ（初期値）
         
         // テトロミノの定義
         this.tetrominoes = {
@@ -181,6 +182,7 @@ class RetroTetris {
         this.lines = 0;
         this.dropInterval = 1000;
         this.currentNote = 0;
+        this.lastNoteDuration = this.korobeinikiDurations[0]; // 最初の音符の長さで初期化
         this.dropTime = Date.now();
         this.noteTimer = Date.now(); // BGMタイマーを初期化
         
@@ -698,6 +700,7 @@ class RetroTetris {
         this.gameRunning = true;
         this.gamePaused = false;
         this.currentNote = 0;
+        this.lastNoteDuration = this.korobeinikiDurations[0]; // 最初の音符の長さで初期化
         this.noteTimer = Date.now(); // BGMタイマーをリセット
         
         this.gameOverModal.classList.add('hidden');
@@ -727,15 +730,17 @@ class RetroTetris {
         
         // BGM再生（ゲーム開始後は常に再生）
         if (this.gameStarted && this.musicPlaying && this.audioContext) {
-            const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
-            if (currentTime - this.noteTimer > currentNoteDuration) {
+            if (currentTime - this.noteTimer > this.lastNoteDuration) {
                 const frequency = this.korobeinikiMelody[this.currentNote];
+                const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
                 // 音符の実際の再生時間を正確に設定
-                console.log(`BGM Debug: ${currentTime.toFixed(2)}/${frequency}/${currentNoteDuration}`);
+                console.log(`BGM Debug: ${currentTime.toFixed(2)}/${frequency}/${currentNoteDuration} (lastDuration: ${this.lastNoteDuration})`);
                 if (frequency > 0) {
                     this.playNote(frequency, currentNoteDuration);
                 }
                 
+                // 前の音符の長さを記憶し、次の音符に進む
+                this.lastNoteDuration = currentNoteDuration;
                 this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
                 this.noteTimer = currentTime;
             }
