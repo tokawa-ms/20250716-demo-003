@@ -97,15 +97,23 @@ class RetroTetris {
         
         // コロベイニキのメロディ（MIDI音階）
         this.korobeinikiMelody = [
-            659.25, 493.88, 523.25, 587.33, 523.25, 493.88, 440.00, // E D C B C D A
-            440.00, 523.25, 659.25, 587.33, 523.25, 493.88, 523.25, // A C E D C B C
-            587.33, 659.25, 523.25, 440.00, 440.00, 0, // B E C A A (rest)
-            587.33, 698.46, 880.00, 783.99, 698.46, 659.25, 523.25, // D F A G F E C
-            659.25, 587.33, 523.25, 493.88, 523.25, 587.33, 659.25, // E D C B C D E
-            523.25, 440.00, 440.00, 0 // C A A (rest)
+            659.25, 493.88, 523.25, 587.33, 523.25, 493.88, 440.00,
+            440.00, 523.25, 659.25, 587.33, 523.25, 493.88, 523.25,
+            587.33, 659.25, 523.25, 440.00, 440.00, 0,
+            587.33, 698.46, 880.00, 783.99, 698.46, 659.25, 523.25,
+            659.25, 587.33, 523.25, 493.88, 523.25, 587.33, 659.25,
+            523.25, 440.00, 440.00, 0
         ];
         
-        this.noteDuration = 400; // 各音符の長さ(ms)
+        // コロベイニキの正しい音符の長さ（ms）
+        this.korobeinikiDurations = [
+            400, 200, 200, 400, 200, 200, 800,
+            400, 200, 400, 200, 200, 200, 800,
+            400, 400, 400, 400, 600, 200,
+            400, 200, 400, 200, 200, 200, 800,
+            400, 200, 200, 400, 200, 200, 400,
+            400, 400, 600, 200
+        ];
         
         this.init();
     }
@@ -696,15 +704,17 @@ class RetroTetris {
             }
             
             // BGM再生
-            if (this.musicPlaying && this.audioContext && 
-                currentTime - this.noteTimer > this.noteDuration) {
-                const frequency = this.korobeinikiMelody[this.currentNote];
-                if (frequency > 0) {
-                    this.playNote(frequency, this.noteDuration * 0.8);
+            if (this.musicPlaying && this.audioContext) {
+                const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
+                if (currentTime - this.noteTimer > currentNoteDuration) {
+                    const frequency = this.korobeinikiMelody[this.currentNote];
+                    if (frequency > 0) {
+                        this.playNote(frequency, currentNoteDuration * 0.8);
+                    }
+                    
+                    this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
+                    this.noteTimer = currentTime;
                 }
-                
-                this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
-                this.noteTimer = currentTime;
             }
         }
         
