@@ -732,6 +732,7 @@ class RetroTetris {
                 const frequency = this.korobeinikiMelody[this.currentNote];
                 if (frequency > 0) {
                     // 音符の実際の再生時間を正確に設定
+                    console.log(`BGM Debug: ${currentTime.toFixed(2)}/${frequency}/${currentNoteDuration}`);
                     this.playNote(frequency, currentNoteDuration);
                 }
                 
