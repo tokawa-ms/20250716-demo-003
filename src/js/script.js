@@ -182,6 +182,7 @@ class RetroTetris {
         this.dropInterval = 1000;
         this.currentNote = 0;
         this.dropTime = Date.now();
+        this.noteTimer = Date.now(); // BGMタイマーを初期化
         
         // ボードとピースを初期化
         this.initBoard();
@@ -305,11 +306,17 @@ class RetroTetris {
         oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
         oscillator.type = 'square'; // レトロ風の音
         
-        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
+        // 音符の開始と終了のゲイン設定を改善
+        const startTime = this.audioContext.currentTime;
+        const endTime = startTime + (duration / 1000);
+        const releaseTime = Math.min(0.05, duration / 1000 * 0.1); // リリース時間を短く
         
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration / 1000);
+        gainNode.gain.setValueAtTime(0.05, startTime);
+        gainNode.gain.setValueAtTime(0.05, endTime - releaseTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, endTime);
+        
+        oscillator.start(startTime);
+        oscillator.stop(endTime);
     }
     
     /**
@@ -691,6 +698,7 @@ class RetroTetris {
         this.gameRunning = true;
         this.gamePaused = false;
         this.currentNote = 0;
+        this.noteTimer = Date.now(); // BGMタイマーをリセット
         
         this.gameOverModal.classList.add('hidden');
         this.pauseModal.classList.add('hidden');
@@ -715,19 +723,20 @@ class RetroTetris {
                 this.movePiece(0, 1);
                 this.dropTime = currentTime;
             }
-            
-            // BGM再生
-            if (this.musicPlaying && this.audioContext) {
-                const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
-                if (currentTime - this.noteTimer > currentNoteDuration) {
-                    const frequency = this.korobeinikiMelody[this.currentNote];
-                    if (frequency > 0) {
-                        this.playNote(frequency, currentNoteDuration * 0.8);
-                    }
-                    
-                    this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
-                    this.noteTimer = currentTime;
+        }
+        
+        // BGM再生（ゲーム開始後は常に再生）
+        if (this.gameStarted && this.musicPlaying && this.audioContext) {
+            const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
+            if (currentTime - this.noteTimer > currentNoteDuration) {
+                const frequency = this.korobeinikiMelody[this.currentNote];
+                if (frequency > 0) {
+                    // 音符の実際の再生時間を正確に設定
+                    this.playNote(frequency, currentNoteDuration);
                 }
+                
+                this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
+                this.noteTimer = currentTime;
             }
         }
         
