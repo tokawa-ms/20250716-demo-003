@@ -64,15 +64,17 @@ this.korobeinikiDurations = [
 ### BGM再生ロジック
 
 ```javascript
-// ゲームループ内のBGM再生処理
+// ゲームループ内のBGM再生処理（修正済み）
 if (this.gameStarted && this.musicPlaying && this.audioContext) {
-    const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
-    if (currentTime - this.noteTimer > currentNoteDuration) {
+    if (currentTime - this.noteTimer > this.lastNoteDuration) {
         const frequency = this.korobeinikiMelody[this.currentNote];
+        const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
         if (frequency > 0) {
             this.playNote(frequency, currentNoteDuration);
         }
         
+        // 前の音符の長さを記憶し、次の音符に進む
+        this.lastNoteDuration = currentNoteDuration;
         this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
         this.noteTimer = currentTime;
     }
@@ -107,6 +109,7 @@ if (this.gameStarted && this.musicPlaying && this.audioContext) {
 1. **音符長の不正確性**: 音符が期待より短く再生されていた問題
 2. **BGM再生タイミング**: ゲーム状態によってBGMが停止する問題
 3. **配列要素数の誤記**: ドキュメントで35個と記載されていたが実際は41個
+4. **❌ 重要な修正 (2025年7月17日)**: **BGM再生タイミングロジックの根本的な誤り**
 
 #### 実施した修正
 1. **音符長の正確化**
@@ -117,7 +120,15 @@ if (this.gameStarted && this.musicPlaying && this.audioContext) {
    - BGM再生をゲームプレイ状態から独立させ、ゲーム開始後は継続的に再生
    - `noteTimer`の初期化タイミングを修正
 
-3. **Web Audio APIの最適化**
+3. **🔧 BGM再生タイミングロジックの根本修正**
+   - **問題**: `if (currentTime - this.noteTimer > currentNoteDuration)` 
+     - これは「現在再生しようとしている音符の長さ」で判定していた
+   - **解決**: `if (currentTime - this.noteTimer > this.lastNoteDuration)`
+     - 「前に再生した音符の長さ」で判定するように修正
+   - **追加変数**: `this.lastNoteDuration` を追加して前の音符の長さを記憶
+   - **初期化**: ゲーム開始時とリスタート時に適切に初期化
+
+4. **Web Audio APIの最適化**
    - ゲインエンベロープの改善により自然な音符の減衰を実現
    - 音量レベルの調整（0.1 → 0.05）
 
@@ -126,6 +137,7 @@ if (this.gameStarted && this.musicPlaying && this.audioContext) {
 - ✅ コロベイニキメロディーが意図した通りのリズムで演奏される
 - ✅ 総演奏時間: 12.8秒のループ再生
 - ✅ 一時停止中やメニュー表示中でもBGMが継続再生
+- ✅ **BGMのリズムが正確になり、期待通りのタイミングで再生される**
 
 ## トラブルシューティング
 
