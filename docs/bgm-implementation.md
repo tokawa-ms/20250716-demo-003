@@ -35,6 +35,7 @@ this.korobeinikiMelody = [
     523.25, 440.00, 440.00                            // C A↓ A↓
 ];
 ```
+*配列要素数: 41個*
 
 #### 音符長配列 (korobeinikiDurations)
 ```javascript
@@ -49,6 +50,7 @@ this.korobeinikiDurations = [
     400, 400, 800                  // C四分 A↓四分 A↓二分
 ];
 ```
+*配列要素数: 41個*
 
 ### 音符長の定義
 
@@ -63,12 +65,12 @@ this.korobeinikiDurations = [
 
 ```javascript
 // ゲームループ内のBGM再生処理
-if (this.musicPlaying && this.audioContext) {
+if (this.gameStarted && this.musicPlaying && this.audioContext) {
     const currentNoteDuration = this.korobeinikiDurations[this.currentNote];
     if (currentTime - this.noteTimer > currentNoteDuration) {
         const frequency = this.korobeinikiMelody[this.currentNote];
         if (frequency > 0) {
-            this.playNote(frequency, currentNoteDuration * 0.8);
+            this.playNote(frequency, currentNoteDuration);
         }
         
         this.currentNote = (this.currentNote + 1) % this.korobeinikiMelody.length;
@@ -80,17 +82,50 @@ if (this.musicPlaying && this.audioContext) {
 ### 重要な実装ポイント
 
 #### 1. 配列の整合性
-- `korobeinikiMelody`と`korobeinikiDurations`は同じ要素数（35個）である必要があります
+- `korobeinikiMelody`と`korobeinikiDurations`は同じ要素数（41個）である必要があります
 - 配列のインデックスが対応しており、`melody[i]`と`durations[i]`は同じ音符を表します
 
 #### 2. 音符の再生時間
-- `playNote(frequency, duration * 0.8)`で実際の音の長さを制御
-- 0.8倍することで音符間に適切な間隔を作成
+- `playNote(frequency, duration)`で音符の正確な長さを制御
 - 休符（frequency = 0）の場合は音を再生しません
+- 音符間の自然な区切りはWeb Audio APIのゲインエンベロープで実現
+
+#### 3. BGM再生タイミング
+- ゲーム開始後はゲームプレイ状態に関わらず継続的にBGM再生
+- 一時停止中やゲームオーバー中でもBGMは継続
+- `noteTimer`でタイミングを正確に管理
 
 #### 3. Web Audio API使用
 - `oscillator.type = 'square'`でレトロゲーム風の音質を実現
 - ゲイン（音量）を時間経過とともに減衰させて自然な音を作成
+
+## 修正履歴
+
+### 2025年7月17日 - BGM再生ロジック修正
+
+#### 修正された問題
+1. **音符長の不正確性**: 音符が期待より短く再生されていた問題
+2. **BGM再生タイミング**: ゲーム状態によってBGMが停止する問題
+3. **配列要素数の誤記**: ドキュメントで35個と記載されていたが実際は41個
+
+#### 実施した修正
+1. **音符長の正確化**
+   - `playNote(frequency, currentNoteDuration * 0.8)` → `playNote(frequency, currentNoteDuration)`
+   - 音符間の間隔はWeb Audio APIのゲインエンベロープで自然に実現
+
+2. **BGM再生ロジックの改善**
+   - BGM再生をゲームプレイ状態から独立させ、ゲーム開始後は継続的に再生
+   - `noteTimer`の初期化タイミングを修正
+
+3. **Web Audio APIの最適化**
+   - ゲインエンベロープの改善により自然な音符の減衰を実現
+   - 音量レベルの調整（0.1 → 0.05）
+
+#### 修正結果
+- ✅ 音符長が楽譜通りの正確な長さで再生される
+- ✅ コロベイニキメロディーが意図した通りのリズムで演奏される
+- ✅ 総演奏時間: 12.8秒のループ再生
+- ✅ 一時停止中やメニュー表示中でもBGMが継続再生
 
 ## トラブルシューティング
 
